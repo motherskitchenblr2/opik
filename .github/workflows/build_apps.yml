@@ -78,8 +78,9 @@ on:
         value: ${{ jobs.set-version.outputs.version }}
 
 permissions:
-  packages: write   # Required for reusable workflows that push Docker images
-
+  packages: write
+  contents: read
+  
 jobs:
 
   set-version:
