@@ -87,7 +87,7 @@ jobs:
         build_from: ${{ steps.version.outputs.build_from }}
     steps:
         - name: Checkout
-          uses: actions/checkout@v6
+          uses: actions/checkout@v4
           with:
             ref: ${{ inputs.ref || github.ref }}
 
@@ -128,22 +128,7 @@ jobs:
               echo "build_from=${{inputs.version}}" | tee -a "$GITHUB_OUTPUT"
             fi
             
-  build-backend:
-    needs:
-      - set-version
-    secrets: inherit
-    uses: ./.github/workflows/build_and_push_docker.yaml
-    with:
-      image: "opik-backend"
-      version: ${{needs.set-version.outputs.version}}
-      build_from: ${{needs.set-version.outputs.build_from}}
-      build_comet_image: false
-      comet_build_args: ""
-      is_release: ${{ inputs.is_release || false }}
-      is_adhoc: ${{ inputs.is_adhoc || false }}
-      # push events have no `inputs` context, so force multi-arch there; otherwise honor the input (workflow_dispatch / workflow_call use the declared default: true)
-      build_arm64: ${{ github.event_name == 'push' || inputs.build_arm64 }}
-
+        
   build-sandbox-executor-python:
     if: ${{ !inputs.is_adhoc }}
     needs:
@@ -207,6 +192,22 @@ jobs:
       build_arm64: ${{ github.event_name == 'push' || inputs.build_arm64 }}
       ai_spend_plugin_ref: ${{ inputs.ai_spend_plugin_ref || 'main' }}
 
+  build-backend:
+    needs:
+      - set-version
+    secrets: inherit
+    uses: ./.github/workflows/build_and_push_docker.yaml
+    with:
+      image: "opik-backend"
+      version: ${{needs.set-version.outputs.version}}
+      build_from: ${{needs.set-version.outputs.build_from}}
+      build_comet_image: false
+      comet_build_args: ""
+      is_release: ${{ inputs.is_release || false }}
+      is_adhoc: ${{ inputs.is_adhoc || false }}
+      # push events have no `inputs` context, so force multi-arch there; otherwise honor the input (workflow_dispatch / workflow_call use the declared default: true)
+      build_arm64: ${{ github.event_name == 'push' || inputs.build_arm64 }}
+
   create-git-tag:
     if: |
       always() &&
@@ -225,8 +226,8 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-
+        uses: actions/checkout@v4
+      
       - name: Create git tag
         run: |
           set -x
@@ -234,5 +235,3 @@ jobs:
           git config --local user.name "github-actions"
           git tag ${{needs.set-version.outputs.version}}
           git push --no-verify origin refs/tags/${{needs.set-version.outputs.version}}
-        
-    
