@@ -134,7 +134,8 @@ jobs:
           docker save "${{env.DOCKER_REGISTRY}}/opik-sandbox-executor-python:$TAG" | gzip > apps/opik-python-backend/opik-sandbox-executor-python.tar.gz
 
       - name: Checkout ai-spend plugin (private)
-        if: inputs.image == 'opik-frontend' && matrix.image_type == 'comet'
+       - if: inputs.image == 'opik-frontend' && matrix.image_type == 'comet' && secrets.OPIK_PLUGIN_AI_SPEND_TOKEN != ''
+ 
         uses: actions/checkout@v6
         with:
           repository: comet-ml/opik-plugin-ai-spend
